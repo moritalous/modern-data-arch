@@ -11,25 +11,22 @@ export class AthenaStack extends cdk.Stack {
   constructor(scope: Construct, id: string,
     regionMap: cdk.CfnMapping,
     kmsStack: KmsStack,
-    recreate: boolean = false,
     props?: cdk.StackProps) {
 
     super(scope, id, props);
 
-    const athenaBucket = recreate
-      ? s3.Bucket.fromBucketName(this, 's3BucketRaw', `aws-athena-query-results-${this.account}${regionMap.findInMap(this.region, 'name')}`)
-      : new s3.Bucket(this, 'AthenaBucket', {
-        accessControl: s3.BucketAccessControl.BUCKET_OWNER_FULL_CONTROL,
-        blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
-        encryption: s3.BucketEncryption.KMS,
-        encryptionKey: kmsStack.key,
-        bucketName: `aws-athena-query-results-${this.account}${regionMap.findInMap(this.region, 'name')}`,
-        lifecycleRules: [
-          {
-            expiration: cdk.Duration.days(1)
-          }
-        ]
-      })
+    const athenaBucket = new s3.Bucket(this, 'AthenaBucket', {
+      accessControl: s3.BucketAccessControl.BUCKET_OWNER_FULL_CONTROL,
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      encryption: s3.BucketEncryption.KMS,
+      encryptionKey: kmsStack.key,
+      bucketName: `aws-athena-query-results-${this.account}${regionMap.findInMap(this.region, 'name')}`,
+      lifecycleRules: [
+        {
+          expiration: cdk.Duration.days(1)
+        }
+      ]
+    })
 
     // const athenaSpillBucket = new s3.Bucket(this, 'AthenaSpillBucket', {
     //   accessControl: s3.BucketAccessControl.BUCKET_OWNER_FULL_CONTROL,

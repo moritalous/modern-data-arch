@@ -39,13 +39,6 @@ export class ModerndataStack extends cdk.Stack {
     //   noEcho: true
     // })
 
-    const recreate = new cdk.CfnParameter(this, 'Recreate', {
-      type: 'String',
-      description: 'Re create ?',
-      default: 'false',
-      noEcho: true
-    })
-
     const regionMap = new cdk.CfnMapping(this, 'RegionMap', {
       mapping: {
         'us-east-2': {
@@ -89,8 +82,6 @@ export class ModerndataStack extends cdk.Stack {
 
     const bucketNameParam = '-lakehouse-datalake'
 
-    const recreateFlag = recreate.valueAsString === 'true'
-
     const kmsStack = new KmsStack(this, 'KmsStack',
       cFNExecRoleOrUserArnParam,
       {
@@ -102,7 +93,6 @@ export class ModerndataStack extends cdk.Stack {
       regionMap,
       bucketNameParam,
       kmsStack,
-      recreateFlag,
       {
         env: { region: 'us-east-1' },
         crossRegionReferences: true,
@@ -118,7 +108,6 @@ export class ModerndataStack extends cdk.Stack {
     const athenaStack = new AthenaStack(this, 'athenaStack',
       regionMap,
       kmsStack,
-      recreateFlag,
       {
         env: { region: 'us-east-1' },
         crossRegionReferences: true,
@@ -155,7 +144,6 @@ export class ModerndataStack extends cdk.Stack {
       regionMap,
       cFNExecRoleOrUserArnParam,
       kmsStack,
-      recreateFlag,
       {
         env: { region: 'us-east-1' },
         crossRegionReferences: true,
