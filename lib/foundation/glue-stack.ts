@@ -137,12 +137,12 @@ export class GlueStack extends cdk.Stack {
     )
 
     new lakeformation.CfnResource(this, 'datalakelocationRaw', {
-      resourceArn: bucketStack.s3BucketRaw.bucketArn, 
+      resourceArn: bucketStack.s3BucketRaw.bucketArn,
       useServiceLinkedRole: true
     })
 
     new lakeformation.CfnResource(this, 'datalakelocationStage', {
-      resourceArn: bucketStack.s3BucketStage.bucketArn, 
+      resourceArn: bucketStack.s3BucketStage.bucketArn,
       useServiceLinkedRole: true
     })
 
@@ -172,6 +172,60 @@ export class GlueStack extends cdk.Stack {
     stageGlueDatabase.node.addDependency(dataLakeSettings)
 
     /**
+     * Table
+     */
+
+    const worldCasesDeathstestingTableRaw = new glue.CfnTable(this, 'worldCasesDeathsTestingTableRaw', {
+      catalogId: this.account,
+      databaseName: 'raw',
+      tableInput: {
+        description: 'Data on confirmed cases, deaths, and testing. Sourced from rearc.',
+        name: 'rearc_covid_19_world_cases_deaths_testing',
+        parameters: {
+          'has_encrypted_data': false,
+          'classification': 'json',
+          'typeOfData': 'file'
+        },
+        storageDescriptor: {
+          columns: [
+            { name: 'iso_code', type: 'string' },
+            { name: 'location', type: 'string' },
+
+            { name: 'date', type: 'string' },
+
+            { name: 'total_cases', type: 'double' },
+            { name: 'new_cases', type: 'double' },
+
+            { name: 'total_cases_per_million', type: 'double' },
+            { name: 'new_cases_per_million', type: 'double' },
+
+            { name: 'tests_units', type: 'string' },
+
+            { name: 'total_deaths', type: 'double' },
+            { name: 'new_deaths', type: 'double' },
+
+            { name: 'total_deaths_per_million', type: 'double' },
+            { name: 'new_deaths_per_million', type: 'double' },
+
+          ],
+          compressed: false,
+          inputFormat: 'org.apache.hadoop.mapred.TextInputFormat',
+          location: bucketStack.s3BucketRaw.s3UrlForObject('rearc-covid-19-world-cases-deaths-testing/json/'),
+          outputFormat: 'org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat',
+          serdeInfo: {
+            serializationLibrary: 'org.openx.data.jsonserde.JsonSerDe',
+            parameters: {
+              'paths': 'date,iso_code,location,new_cases,new_cases_per_million,new_deaths,new_deaths_per_million,tests_units,total_cases,total_cases_per_million,total_deaths,total_deaths_per_million'
+            },
+          },
+          storedAsSubDirectories: false,
+        },
+        tableType: 'EXTERNAL_TABLE'
+      }
+    })
+    worldCasesDeathstestingTableRaw.node.addDependency(rawGlueDatabase)
+
+    /**
      * Crawler
      */
 
@@ -194,19 +248,22 @@ export class GlueStack extends cdk.Stack {
     })
 
 
-    const covid19Crawler = new glue.CfnCrawler(this, 'covid19Crawler', {
+    const countrycodeCrawler = new glue.CfnCrawler(this, 'countrycodeCrawler', {
       // crawlerSecurityConfiguration: glueEncryption.name,
       databaseName: (rawGlueDatabase.databaseInput as glue.CfnDatabase.DatabaseInputProperty).name,
-      description: 'Crawler for covid19 data tables',
-      name: 'covid19-data-crawler',
+      description: 'Crawler for countrycode data tables',
+      name: 'countrycode-data-crawler',
       role: lakehouseGlueRole.roleArn,
       tablePrefix: '',
       targets: {
         s3Targets: [
-          { path: bucketStack.s3BucketRaw.s3UrlForObject('rearc-covid-19-world-cases-deaths-testing/') },
-          { path: bucketStack.s3BucketRaw.s3UrlForObject('static-datasets/csv/countrycode') },
+          {
+            path: bucketStack.s3BucketRaw.s3UrlForObject('static-datasets/csv/countrycode'),
+            exclusions: ['**/.aws-datasync/**']
+          },
         ]
       },
+      configuration: '{\"Version\":1.0,\"Grouping\":{\"TableGroupingPolicy\":\"CombineCompatibleSchemas\"},\"CreatePartitionIndex\":true}',
       schedule: {
         scheduleExpression: 'cron(0 * * * ? *)'
       }

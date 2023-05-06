@@ -7,10 +7,10 @@ from awsglue.job import Job
 
 import boto3
 
-sts_client = boto3.client('sts')
+sts_client = boto3.client("sts")
 identity = sts_client.get_caller_identity()
 
-account = identity['Account']
+account = identity["Account"]
 region = sts_client.meta.region_name
 
 args = getResolvedOptions(sys.argv, ["JOB_NAME"])
@@ -31,11 +31,11 @@ S3bucket_node3 = glueContext.getSink(
     connection_type="s3",
     updateBehavior="UPDATE_IN_DATABASE",
     partitionKeys=["alpha-3 code"],
-    compression="gzip",
+    compression="snappy",
     enableUpdateCatalog=True,
     transformation_ctx="S3bucket_node3",
 )
 S3bucket_node3.setCatalogInfo(catalogDatabase="stage", catalogTableName="countrycode")
-S3bucket_node3.setFormat("csv")
+S3bucket_node3.setFormat("glueparquet")
 S3bucket_node3.writeFrame(S3bucket_node1)
 job.commit()
