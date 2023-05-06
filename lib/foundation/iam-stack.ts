@@ -17,6 +17,7 @@ export class IamStack extends cdk.Stack {
 
     const sitewiseRole = new iam.Role(this, 'sitewiseRole', {
       assumedBy: new iam.ServicePrincipal('iotsitewise.amazonaws.com'),
+      roleName: 'sitewise-storage-role',
       inlinePolicies: {
         'AmazonS3BucketAllowPolicy': new iam.PolicyDocument({
           statements: [
@@ -47,7 +48,6 @@ export class IamStack extends cdk.Stack {
       return {
         assumedBy: new iam.CompositePrincipal(
           new iam.AccountRootPrincipal(),
-          new iam.AccountPrincipal('781749372177')
         ),
         roleName: `analyst-${id}-role`,
         managedPolicies: [

@@ -114,6 +114,7 @@ export class ModerndataStack extends cdk.Stack {
       })
 
     const glueStack = new GlueStack(this, 'glueStack',
+      regionMap,
       cFNExecRoleOrUserArnParam,
       kmsStack,
       bucketStack,

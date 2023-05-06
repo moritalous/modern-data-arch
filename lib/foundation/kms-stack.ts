@@ -21,22 +21,6 @@ export class KmsStack extends cdk.Stack {
       ],
     })
 
-    this.key.addToResourcePolicy(
-      new iam.PolicyStatement({
-        sid: 'Allow use of the key',
-        effect: iam.Effect.ALLOW,
-        principals: [new iam.ArnPrincipal(`arn:aws:iam::${this.account}:role/aws-service-role/lakeformation.amazonaws.com/AWSServiceRoleForLakeFormationDataAccess`)],
-        actions: [
-          'kms:Encrypt',
-          'kms:Decrypt',
-          'kms:ReEncrypt*',
-          'kms:GenerateDataKey*',
-          'kms:DescribeKey'
-        ],
-        resources: ['*']
-      })
-    )
-
     const lakeKeyAlias = new kms.Alias(this, 'LakeKeyAlias', {
       aliasName: 'alias/CustomLakeEncryptionKey',
       targetKey: this.key
