@@ -90,8 +90,9 @@ export class DataSyncSourceUsEast2 extends cdk.Stack {
       options: {
         logLevel: 'TRANSFER',
         verifyMode: 'NONE',
-        objectTags: 'NONE'
-      }
+        objectTags: 'NONE',
+        preserveDeletedFiles: 'REMOVE'
+      },
     })
   }
 }
