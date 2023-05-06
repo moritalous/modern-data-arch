@@ -136,6 +136,16 @@ export class GlueStack extends cdk.Stack {
       })
     )
 
+    new lakeformation.CfnResource(this, 'datalakelocationRaw', {
+      resourceArn: bucketStack.s3BucketRaw.bucketArn, 
+      useServiceLinkedRole: true
+    })
+
+    new lakeformation.CfnResource(this, 'datalakelocationStage', {
+      resourceArn: bucketStack.s3BucketStage.bucketArn, 
+      useServiceLinkedRole: true
+    })
+
 
     /**
      * Database
