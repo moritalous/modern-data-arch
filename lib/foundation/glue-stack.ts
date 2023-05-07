@@ -22,12 +22,27 @@ export class GlueStack extends cdk.Stack {
 
     super(scope, id, props);
 
+    /**
+     * Lake Formation
+     */
+
     const dataLakeSettings = new lakeformation.CfnDataLakeSettings(this, 'DataLakeSettings', {
       admins: [
         { dataLakePrincipalIdentifier: cFNExecRoleOrUserArnParam },
         { dataLakePrincipalIdentifier: `arn:aws:iam::${this.account}:role/cdk-hnb659fds-cfn-exec-role-${this.account}-${this.region}` },
       ],
     })
+
+    const datalakelocationRaw = new lakeformation.CfnResource(this, 'datalakelocationRaw', {
+      resourceArn: bucketStack.s3BucketRaw.bucketArn,
+      useServiceLinkedRole: true
+    })
+
+    const datalakelocationStage = new lakeformation.CfnResource(this, 'datalakelocationStage', {
+      resourceArn: bucketStack.s3BucketStage.bucketArn,
+      useServiceLinkedRole: true
+    })
+
 
     const lakehouseGlueRole = new iam.Role(this, 'LakehouseGlueRole', {
       roleName: 'GlueExecutionRole',
@@ -135,16 +150,6 @@ export class GlueStack extends cdk.Stack {
         resources: ['*']
       })
     )
-
-    new lakeformation.CfnResource(this, 'datalakelocationRaw', {
-      resourceArn: bucketStack.s3BucketRaw.bucketArn,
-      useServiceLinkedRole: true
-    })
-
-    new lakeformation.CfnResource(this, 'datalakelocationStage', {
-      resourceArn: bucketStack.s3BucketStage.bucketArn,
-      useServiceLinkedRole: true
-    })
 
 
     /**

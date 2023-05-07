@@ -14,7 +14,12 @@ export class BackupStack extends cdk.Stack {
 
     super(scope, id, props);
 
-    const backupPlan = backup.BackupPlan.daily35DayRetention(this, 'BackupPlan')
+    const backupVault = new backup.BackupVault(this, 'backupVault', {
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    })
+
+    const backupPlan = backup.BackupPlan.daily35DayRetention(this, 'BackupPlan', backupVault)
+
     backupPlan.addSelection('backupSelection', {
       resources: [
         backup.BackupResource.fromArn(bucketStack.s3BucketRaw.bucketArn),
