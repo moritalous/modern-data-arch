@@ -269,9 +269,6 @@ export class GlueStack extends cdk.Stack {
         ]
       },
       configuration: '{\"Version\":1.0,\"Grouping\":{\"TableGroupingPolicy\":\"CombineCompatibleSchemas\"},\"CreatePartitionIndex\":true}',
-      schedule: {
-        scheduleExpression: 'cron(0 * * * ? *)'
-      }
     })
 
     const sitewiseCrawlerRaw = new glue.CfnCrawler(this, 'sitewiseCrawlerRaw', {
@@ -358,6 +355,40 @@ export class GlueStack extends cdk.Stack {
       numberOfWorkers: 2,
       glueVersion: '3.0',
     })
+
+    /**
+     * Workflow
+     */
+
+    const covid19Workflow = new glue.CfnWorkflow(this, 'covid19Workflow', {
+      name: 'covid19-workflow',
+    })
+
+    const scheduledTrigger = new glue.CfnTrigger(this, 'scheduledTrigger', {
+      name: 'scheduledTrigger',
+      type: 'SCHEDULED',
+      schedule: 'cron(0 * * * ? *)',
+      actions: [
+        { crawlerName: countrycodeCrawler.name },
+        { jobName: worldCasesDeathsTestingRaw2stageJob.name },
+      ],
+      workflowName: covid19Workflow.name
+    })
+
+    const conditionalTrigger = new glue.CfnTrigger(this, 'conditionalTrigger', {
+      name: 'conditionalTrigger',
+      type: 'CONDITIONAL',
+      predicate: {
+        conditions: [
+          { crawlerName: countrycodeCrawler.name, crawlState: 'SUCCEEDED', logicalOperator: 'EQUALS' }
+        ]
+      },
+      actions: [
+        { jobName: countrycodesJob.name },
+      ],
+      workflowName: covid19Workflow.name
+    })
+
 
   }
 }
