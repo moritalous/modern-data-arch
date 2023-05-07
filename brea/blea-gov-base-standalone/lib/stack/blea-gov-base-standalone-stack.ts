@@ -25,10 +25,10 @@ export class BLEAGovBaseStandaloneStack extends Stack {
     // You must create a configuration recorder before you can create or update a Config rule.
     detection.node.addDependency(logging);
 
-    new Notification(this, 'Notification', {
-      topicArn: detection.topic.topicArn,
-      workspaceId: props.securitySlackWorkspaceId,
-      channelId: props.securitySlackChannelId,
-    });
+    // new Notification(this, 'Notification', {
+    //   topicArn: detection.topic.topicArn,
+    //   workspaceId: props.securitySlackWorkspaceId,
+    //   channelId: props.securitySlackChannelId,
+    // });
   }
 }
